@@ -1,7 +1,7 @@
 {
   "name": "МетеоПульс — Прогноз погоды на 10 дней",
   "short_name": "МетеоПульс",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
