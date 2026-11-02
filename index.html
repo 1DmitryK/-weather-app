@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="МетеоПульс" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="manifest" href="manifest.json" />
+  <title>МетеоПульс — Прогноз погоды на 10 дней</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="theme-clear">
+  <!-- Фоновые декоративные свечения -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="app-container">
+    <!-- Шапка и поиск -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo" id="brandIcon"></div>
+        <div>
+          <h1>МетеоПульс</h1>
+          <p class="subtitle">Точный прогноз погоды по вашей геолокации на 10 дней</p>
+        </div>
+      </div>
+
+      <div class="search-wrapper">
+        <form id="searchForm" class="search-form" autocomplete="off">
+          <div class="search-input-group">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              id="cityInput"
+              placeholder="Введите любой город мира (только если нужно сменить локацию)..."
+              aria-label="Название города"
+            />
+            <button type="button" id="geoBtn" class="geo-btn" title="Обновить моё текущее местоположение (GPS)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
+            </button>
+          </div>
+          <button type="submit" class="search-submit">Найти</button>
+        </form>
+        <div id="suggestionsList" class="suggestions-dropdown hidden"></div>
+      </div>
+    </header>
+
+    <!-- Сообщение об ошибке / подсказка -->
+    <div id="errorBanner" class="error-banner hidden">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span id="errorText"></span>
+    </div>
+
+    <!-- Индикатор загрузки -->
+    <div id="loader" class="loader-container">
+      <div class="spinner"></div>
+      <p id="loaderText">Определяем ваше местоположение и загружаем метеоданные...</p>
+    </div>
+
+    <!-- Основной контент -->
+    <main id="weatherContent" class="weather-content hidden">
+      <!-- Текущая погода -->
+      <section class="current-weather-card glass-panel">
+        <div class="current-main">
+          <div class="location-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span id="cityName">—</span>
+            <span id="countryName" class="country-tag hidden"></span>
+          </div>
+          <p id="currentDate" class="current-date">—</p>
+
+          <div class="temp-hero">
+            <div id="currentIcon" class="hero-weather-icon"></div>
+            <div class="temp-values">
+              <div class="temp-now" id="currentTemp">0°</div>
+              <div class="weather-desc" id="currentDesc">—</div>
+              <div class="feels-like">Ощущается как <strong id="feelsLike">0°</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Детали текущей погоды -->
+        <div class="current-metrics">
+          <div class="metric-item">
+            <div class="metric-icon wind-color">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+              </svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Ветер</span>
+              <span class="metric-value" id="currentWind">0 м/с</span>
+              <span class="metric-sub" id="currentWindDir">—</span>
+            </div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-icon precip-color">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+              </svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Осадки сейчас</span>
+              <span class="metric-value" id="currentPrecip">0 мм</span>
+              <span class="metric-sub" id="currentHumidity">Влажность: 0%</span>
+            </div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-icon pressure-color">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Давление</span>
+              <span class="metric-value" id="currentPressure">760 мм</span>
+              <span class="metric-sub">рт. ст.</span>
+            </div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-icon sun-color">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M17 18a5 5 0 0 0-10 0"></path>
+                <line x1="12" y1="2" x2="12" y2="9"></line>
+                <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                <line x1="1" y1="18" x2="3" y2="18"></line>
+                <line x1="21" y1="18" x2="23" y2="18"></line>
+                <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                <line x1="23" y1="22" x2="1" y2="22"></line>
+                <polyline points="8 6 12 2 16 6"></polyline>
+              </svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Восход / Закат</span>
+              <span class="metric-value" id="sunTimes">06:00 / 18:00</span>
+              <span class="metric-sub" id="uvIndex">УФ-индекс: 0</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Прогноз на 10 дней -->
+      <section class="forecast-section">
+        <div class="section-header">
+          <h2>Прогноз на 10 дней</h2>
+          <span class="section-hint">Температура, осадки и скорость ветра по дням</span>
+        </div>
+        <div id="forecastGrid" class="forecast-grid">
+          <!-- Карточки 10 дней генерируются через JS -->
+        </div>
+      </section>
+
+      <!-- Почасовой прогноз на выбранный день -->
+      <section class="hourly-section glass-panel">
+        <div class="section-header">
+          <h2 id="hourlyTitle">Почасовой прогноз на сегодня</h2>
+          <span class="section-hint">Нажмите на любой из 10 дней выше, чтобы посмотреть детали по часам</span>
+        </div>
+        <div id="hourlyTrack" class="hourly-track">
+          <!-- Почасовые плашки -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
