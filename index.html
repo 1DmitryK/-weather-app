@@ -4,185 +4,279 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="МетеоПульс" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Погода" />
+  <meta name="theme-color" content="#ffffff" />
   <link rel="manifest" href="manifest.json" />
-  <title>МетеоПульс — Прогноз погоды на 10 дней</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Погода — Прогноз на 10 дней</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="theme-clear">
-  <!-- Фоновые декоративные свечения -->
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-  <div class="bg-orb orb-3"></div>
+<body>
+  <div class="sinoptik-page">
 
-  <div class="app-container">
-    <!-- Шапка и поиск -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-logo" id="brandIcon"></div>
-        <div>
-          <h1>МетеоПульс</h1>
-          <p class="subtitle">Точный прогноз погоды по вашей геолокации на 10 дней</p>
+    <!-- Верхняя шапка: Оригинальный логотип + Поиск + Переключатель языков (UA / EN / RU) + Настройки -->
+    <header class="sinoptik-header">
+      <a href="#" id="logoHome" class="brand-logo-link" aria-label="Погода">
+        <div class="brand-custom-icon">
+          <svg viewBox="0 0 54 54" width="46" height="46" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="logoSun" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#FFE57F"/>
+                <stop offset="70%" stop-color="#FFB300"/>
+                <stop offset="100%" stop-color="#FB8C00"/>
+              </radialGradient>
+              <linearGradient id="logoCloud" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#38BDF8"/>
+                <stop offset="100%" stop-color="#0E5EBA"/>
+              </linearGradient>
+            </defs>
+            <g stroke="#FFB300" stroke-width="2.5" stroke-linecap="round">
+              <line x1="20" y1="5" x2="20" y2="9"/>
+              <line x1="5" y1="20" x2="9" y2="20"/>
+              <line x1="9.4" y1="9.4" x2="12.2" y2="12.2"/>
+              <line x1="30.6" y1="9.4" x2="27.8" y2="12.2"/>
+            </g>
+            <circle cx="20" cy="20" r="10" fill="url(#logoSun)"/>
+            <path d="M18 42H41C45.97 42 50 37.97 50 33C50 28.36 46.5 24.54 41.98 24.05C40.68 17.4 34.81 12.4 27.75 12.4C19.74 12.4 13.25 18.89 13.25 26.9C13.25 27.35 13.27 27.8 13.32 28.25C9.6 29.4 6.9 32.85 6.9 36.9C6.9 39.72 9.18 42 12 42H18Z" fill="url(#logoCloud)"/>
+          </svg>
         </div>
+        <div class="brand-text-wrap">
+          <span id="brandTitle" class="brand-title">ПОГОДА</span>
+          <span id="brandTagline" class="brand-tagline">Метеопрогноз 10 дней</span>
+        </div>
+      </a>
+
+      <div class="search-container">
+        <form id="searchForm" class="sinoptik-search-form" autocomplete="off">
+          <input
+            type="search"
+            id="cityInput"
+            class="sinoptik-search-input"
+            placeholder="Название населенного пункта, страны или региона..."
+            aria-label="Поиск населенного пункта"
+          />
+          <button type="button" id="geoBtn" class="sinoptik-geo-btn" title="GPS">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#008aff" stroke-width="2">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+            </svg>
+          </button>
+          <button type="submit" id="searchSubmitBtn" class="sinoptik-search-submit" aria-label="Искать"></button>
+        </form>
+        <div id="suggestionsList" class="sinoptik-suggestions hidden"></div>
       </div>
 
-      <div class="search-wrapper">
-        <form id="searchForm" class="search-form" autocomplete="off">
-          <div class="search-input-group">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input
-              type="text"
-              id="cityInput"
-              placeholder="Введите любой город мира (только если нужно сменить локацию)..."
-              aria-label="Название города"
-            />
-            <button type="button" id="geoBtn" class="geo-btn" title="Обновить моё текущее местоположение (GPS)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-              </svg>
-            </button>
-          </div>
-          <button type="submit" class="search-submit">Найти</button>
-        </form>
-        <div id="suggestionsList" class="suggestions-dropdown hidden"></div>
+      <div class="header-actions">
+        <!-- Переключатель языка UA / EN / RU -->
+        <div class="lang-switcher" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="uk">UA</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+          <button type="button" class="lang-btn active" data-lang="ru">RU</button>
+        </div>
+        <button type="button" id="settingsBtn" class="sinoptik-link-btn">Настройки</button>
       </div>
     </header>
 
-    <!-- Сообщение об ошибке / подсказка -->
-    <div id="errorBanner" class="error-banner hidden">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
+    <!-- Модальное окно настроек единиц измерения -->
+    <div id="settingsModal" class="sinoptik-modal-backdrop hidden">
+      <div class="sinoptik-modal">
+        <div id="settingsModalTitle" class="sinoptik-modal-title">Настройки отображения</div>
+        <button type="button" id="closeSettingsBtn" class="sinoptik-modal-close" aria-label="Закрыть"></button>
+        <div class="sinoptik-modal-body">
+          <label class="setting-row">
+            <span id="lblTempUnit">Единицы температуры:</span>
+            <select id="tempUnitSelect">
+              <option value="C">°C (Celsius)</option>
+              <option value="F">°F (Fahrenheit)</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span id="lblWindUnit">Скорость ветра:</span>
+            <select id="windUnitSelect">
+              <option value="ms">м/с (m/s)</option>
+              <option value="kmh">км/ч (km/h)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Уведомление об ошибке -->
+    <div id="errorBanner" class="sinoptik-alert hidden">
       <span id="errorText"></span>
     </div>
 
+    <!-- Заголовок местоположения и переключатель «Неделя / 10 дней» -->
+    <section class="location-Subheader">
+      <div class="location-titles">
+        <h1 class="main-city-heading">
+          <span id="weatherWordPrefix">Погода</span> <span id="cityTitleLoc" class="city-highlight">...</span>
+        </h1>
+        <p id="regionSubtitle" class="region-subtitle">...</p>
+      </div>
+
+      <div class="mode-tabs" role="menubar">
+        <button type="button" id="tab7Days" class="mode-tab" role="menuitem">Неделя</button>
+        <button type="button" id="tab10Days" class="mode-tab active" role="menuitem">10 дней</button>
+      </div>
+    </section>
+
     <!-- Индикатор загрузки -->
-    <div id="loader" class="loader-container">
-      <div class="spinner"></div>
-      <p id="loaderText">Определяем ваше местоположение и загружаем метеоданные...</p>
+    <div id="loader" class="sinoptik-loader">
+      <div class="sinoptik-spinner"></div>
+      <span id="loaderText">Загружаем метеопрогноз...</span>
     </div>
 
-    <!-- Основной контент -->
-    <main id="weatherContent" class="weather-content hidden">
-      <!-- Текущая погода -->
-      <section class="current-weather-card glass-panel">
-        <div class="current-main">
-          <div class="location-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            <span id="cityName">—</span>
-            <span id="countryName" class="country-tag hidden"></span>
-          </div>
-          <p id="currentDate" class="current-date">—</p>
+    <!-- Основной блок прогноза (Вкладки дней + Детальная панель выбранного дня) -->
+    <main id="weatherMain" class="sinoptik-main hidden">
+      <!-- Лента вкладок на 10 (или 7) дней -->
+      <div id="daysTabsRow" class="days-tabs-row" role="menubar">
+        <!-- Вкладки генерируются в app.js -->
+      </div>
 
-          <div class="temp-hero">
-            <div id="currentIcon" class="hero-weather-icon"></div>
-            <div class="temp-values">
-              <div class="temp-now" id="currentTemp">0°</div>
-              <div class="weather-desc" id="currentDesc">—</div>
-              <div class="feels-like">Ощущается как <strong id="feelsLike">0°</strong></div>
+      <!-- Белая детальная карточка выбранного дня (под вкладками) -->
+      <div class="day-detail-box">
+        <!-- Левая колонка: Текущее время, Иконка + Градусник + Температура, Восход/Закат, Поделиться -->
+        <div class="detail-left-col">
+          <div id="localTimeLabel" class="detail-time-caption">—</div>
+
+          <div class="hero-thermo-block">
+            <div id="detailHeroIcon" class="detail-hero-icon" aria-label="Погода"></div>
+
+            <!-- Вертикальный термометр -->
+            <div class="thermo-widget" title="Шкала температуры (°C)">
+              <div class="thermo-scale-numbers">40
+20
+0
+-20
+-40</div>
+              <div class="thermo-tube">
+                <div id="thermoMercury" class="thermo-mercury" style="height: 55%"></div>
+                <div class="thermo-bulb"></div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Детали текущей погоды -->
-        <div class="current-metrics">
-          <div class="metric-item">
-            <div class="metric-icon wind-color">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+            <p id="detailCurrentTemp" class="detail-current-temp">+10°C</p>
+          </div>
+
+          <div class="detail-sun-box">
+            <p class="sun-schedule">
+              <span id="lblSunrise">Восход</span> <span id="sunriseVal" class="sun-time-val">06:55</span><br />
+              <span id="lblSunset">Закат</span> <span id="sunsetVal" class="sun-time-val">16:30</span>
+            </p>
+            <p id="daylightDuration" class="daylight-duration">Световой день: 9 ч 35 мин</p>
+            <button type="button" id="shareWeatherBtn" class="share-weather-btn">
+              <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor">
+                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
               </svg>
+              <span id="shareBtnText">Поделиться погодой</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Правая колонка: Почасовая таблица (ночь / утро / день / вечер) + Текстовое описание -->
+        <div class="detail-right-col">
+          <div class="hourly-table-wrapper">
+            <!-- Подписи строк слева от таблицы -->
+            <div class="table-row-labels">
+              <p class="row-label row-temp"><span id="lblRowTemp">Температура</span>, <span class="unit-temp-label">°C</span></p>
+              <p class="row-label row-feels"><span id="lblRowFeels">чувствуется как</span></p>
+              <p class="row-label row-pressure"><span id="lblRowPressure">Давление, мм</span></p>
+              <p class="row-label row-humidity"><span id="lblRowHumidity">Влажность, %</span></p>
+              <p class="row-label row-wind"><span id="lblRowWind">Ветер</span>, <span class="unit-wind-label">м/с</span></p>
+              <p class="row-label row-precip"><span id="lblRowPrecip">Вероятность осадков, %</span></p>
             </div>
-            <div class="metric-info">
-              <span class="metric-label">Ветер</span>
-              <span class="metric-value" id="currentWind">0 м/с</span>
-              <span class="metric-sub" id="currentWindDir">—</span>
+
+            <!-- Сама таблица на 8 часовых столбцов (0:00 .. 21:00) -->
+            <div class="table-scroll-container">
+              <table class="sinoptik-hourly-table" cellspacing="0" cellpadding="0">
+                <colgroup id="hourlyColgroup">
+                  <col /><col /><col /><col /><col /><col /><col /><col />
+                </colgroup>
+                <thead>
+                  <tr class="period-header-row">
+                    <td colspan="2" id="lblNight">ночь</td>
+                    <td colspan="2" id="lblMorning">утро</td>
+                    <td colspan="2" id="lblDay">день</td>
+                    <td colspan="2" id="lblEvening">вечер</td>
+                  </tr>
+                  <tr id="hourlyTimesRow" class="time-header-row">
+                    <td>0:00</td><td>3:00</td><td>6:00</td><td>9:00</td>
+                    <td>12:00</td><td>15:00</td><td>18:00</td><td>21:00</td>
+                  </tr>
+                </thead>
+                <tbody id="hourlyTableBody">
+                  <!-- Строки иконок, температуры, ощущается, давления, влажности, ветра, осадков -->
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div class="metric-item">
-            <div class="metric-icon precip-color">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-              </svg>
+          <!-- Естественное текстовое описание погоды на выбранный день -->
+          <div class="day-text-summaries">
+            <div class="summary-block">
+              <div class="summary-icon-badge info-badge">i</div>
+              <p id="naturalSummaryText" class="natural-summary-text">—</p>
             </div>
-            <div class="metric-info">
-              <span class="metric-label">Осадки сейчас</span>
-              <span class="metric-value" id="currentPrecip">0 мм</span>
-              <span class="metric-sub" id="currentHumidity">Влажность: 0%</span>
-            </div>
-          </div>
-
-          <div class="metric-item">
-            <div class="metric-icon pressure-color">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-            </div>
-            <div class="metric-info">
-              <span class="metric-label">Давление</span>
-              <span class="metric-value" id="currentPressure">760 мм</span>
-              <span class="metric-sub">рт. ст.</span>
-            </div>
-          </div>
-
-          <div class="metric-item">
-            <div class="metric-icon sun-color">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M17 18a5 5 0 0 0-10 0"></path>
-                <line x1="12" y1="2" x2="12" y2="9"></line>
-                <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
-                <line x1="1" y1="18" x2="3" y2="18"></line>
-                <line x1="21" y1="18" x2="23" y2="18"></line>
-                <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
-                <line x1="23" y1="22" x2="1" y2="22"></line>
-                <polyline points="8 6 12 2 16 6"></polyline>
-              </svg>
-            </div>
-            <div class="metric-info">
-              <span class="metric-label">Восход / Закат</span>
-              <span class="metric-value" id="sunTimes">06:00 / 18:00</span>
-              <span class="metric-sub" id="uvIndex">УФ-индекс: 0</span>
+            <div class="summary-block Secondary-summary">
+              <div class="summary-icon-badge book-badge">☀</div>
+              <p id="extraSummaryText" class="natural-summary-text">—</p>
             </div>
           </div>
         </div>
-      </section>
-
-      <!-- Прогноз на 10 дней -->
-      <section class="forecast-section">
-        <div class="section-header">
-          <h2>Прогноз на 10 дней</h2>
-          <span class="section-hint">Температура, осадки и скорость ветра по дням</span>
-        </div>
-        <div id="forecastGrid" class="forecast-grid">
-          <!-- Карточки 10 дней генерируются через JS -->
-        </div>
-      </section>
-
-      <!-- Почасовой прогноз на выбранный день -->
-      <section class="hourly-section glass-panel">
-        <div class="section-header">
-          <h2 id="hourlyTitle">Почасовой прогноз на сегодня</h2>
-          <span class="section-hint">Нажмите на любой из 10 дней выше, чтобы посмотреть детали по часам</span>
-        </div>
-        <div id="hourlyTrack" class="hourly-track">
-          <!-- Почасовые плашки -->
-        </div>
-      </section>
+      </div>
     </main>
+
+    <!-- Секция: Погода в регионе / соседних городах + Интерактивная карта -->
+    <section id="regionalSection" class="sinoptik-card-section hidden">
+      <div class="card-section-header">
+        <h2 id="regionalHeading" class="card-section-title">Погода в регионе</h2>
+        <button type="button" id="toggleMapBtn" class="map-link-btn">Погода на карте</button>
+      </div>
+
+      <!-- Скрываемая интерактивная карта погоды -->
+      <div id="mapContainer" class="weather-map-container hidden">
+        <iframe
+          id="weatherMapIframe"
+          title="Погода на карте"
+          width="100%"
+          height="320"
+          frameborder="0"
+        ></iframe>
+      </div>
+
+      <ul id="nearbyCitiesGrid" class="nearby-cities-grid">
+        <!-- Карточки соседних городов генерируются динамически -->
+      </ul>
+    </section>
+
+    <!-- Секция: Погода в крупных мировых центрах -->
+    <section class="sinoptik-card-section">
+      <div class="card-section-header">
+        <h2 id="worldSectionTitle" class="card-section-title">Погода на 10 дней в других городах мира</h2>
+      </div>
+      <ul id="worldCitiesList" class="world-cities-columns">
+        <!-- Быстрые ссылки на мировые города -->
+      </ul>
+    </section>
+
+    <!-- Хлебные крошки и подвал -->
+    <footer class="sinoptik-footer">
+      <nav aria-label="Breadcrumb" class="breadcrumbs-bar">
+        <span id="crumbPrefix" class="crumb-prefix">Погода</span>
+        <span id="crumbCountry" class="crumb-item">—</span>
+        <span class="crumb-sep">/</span>
+        <span id="crumbRegion" class="crumb-item">—</span>
+        <span class="crumb-sep">/</span>
+        <strong id="crumbCity" class="crumb-current">—</strong>
+      </nav>
+
+      <div class="footer-bottom">
+        <p id="footerCopy" class="footer-copy">Погода во всех уголках мира • Прогноз погоды на 10 дней</p>
+        <p id="footerSub" class="footer-sub">Автоматическое определение геолокации (GPS) • Без рекламы</p>
+      </div>
+    </footer>
+
   </div>
 
   <script src="app.js"></script>
