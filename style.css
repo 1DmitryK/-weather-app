@@ -79,8 +79,58 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Переключатель режима: Таблица (ECMWF) / Виджеты (Gismeteo) */
+.theme-mode-switcher {
+  display: inline-flex;
+  border: 1px solid #b7d7f4;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f0f7ff;
+}
+
+.view-mode-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0e5eba;
+  cursor: pointer;
+  border-right: 1px solid #b7d7f4;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.view-mode-btn:last-child {
+  border-right: none;
+}
+
+.view-mode-btn:hover {
+  background: #dcebf6;
+}
+
+.view-mode-btn.active {
+  background: linear-gradient(135deg, #008aff, #0e5eba);
+  color: #ffffff;
+  cursor: default;
+}
+
+.provider-pill {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #e6f2fc;
+  color: #0e5eba;
+  border: 1px solid #b7d7f4;
 }
 
 /* Переключатель языков UA / EN / RU */
@@ -1055,5 +1105,497 @@ body {
   }
   .world-cities-columns {
     column-count: 2;
+  }
+}
+
+/* ============================================================================
+   РЕЖИМ 2: ГОЛУБОЙ ФОН И КРАСИВЫЕ ВИДЖЕТЫ НА КАЖДЫЙ ДЕНЬ (GISMETEO / GFS)
+   ============================================================================ */
+.bg-orb {
+  display: none;
+}
+
+body.mode-widgets {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #f8fafc;
+  background: linear-gradient(135deg, #0c192c 0%, #1d4ed8 52%, #0284c7 100%);
+  background-attachment: fixed;
+}
+
+body.mode-widgets .bg-orb {
+  display: block;
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+body.mode-widgets .orb-1 {
+  width: 420px;
+  height: 420px;
+  background: #38bdf8;
+  top: -100px;
+  left: -100px;
+}
+
+body.mode-widgets .orb-2 {
+  width: 480px;
+  height: 480px;
+  background: #6366f1;
+  bottom: -140px;
+  right: -100px;
+}
+
+body.mode-widgets .orb-3 {
+  width: 300px;
+  height: 300px;
+  background: #fbbf24;
+  top: 38%;
+  left: 52%;
+  opacity: 0.18;
+}
+
+body.mode-widgets .sinoptik-page {
+  background: transparent;
+  box-shadow: none;
+  max-width: 1140px;
+  z-index: 1;
+}
+
+body.mode-widgets .sinoptik-header {
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+
+body.mode-widgets .brand-title {
+  color: #ffffff;
+}
+
+body.mode-widgets .brand-tagline {
+  color: #bae6fd;
+}
+
+body.mode-widgets .sinoptik-search-input {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border-radius: 12px;
+  height: 40px;
+  backdrop-filter: blur(16px);
+}
+
+body.mode-widgets .sinoptik-search-input::placeholder {
+  color: #94a3b8;
+}
+
+body.mode-widgets .sinoptik-geo-btn {
+  color: #38bdf8;
+}
+
+body.mode-widgets .sinoptik-search-submit {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  border-left: none;
+  border-radius: 0 11px 11px 0;
+  box-shadow: none;
+}
+
+body.mode-widgets .sinoptik-search-submit::before {
+  filter: invert(1);
+  opacity: 0.95;
+}
+
+body.mode-widgets .theme-mode-switcher,
+body.mode-widgets .lang-switcher {
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.mode-widgets .view-mode-btn,
+body.mode-widgets .lang-btn {
+  color: #e0f2fe;
+  border-right-color: rgba(255, 255, 255, 0.16);
+}
+
+body.mode-widgets .view-mode-btn:hover,
+body.mode-widgets .lang-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+body.mode-widgets .view-mode-btn.active,
+body.mode-widgets .lang-btn.active {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  color: #ffffff;
+}
+
+body.mode-widgets .sinoptik-link-btn {
+  color: #bae6fd;
+}
+
+body.mode-widgets .main-city-heading {
+  color: #cbd5e1;
+}
+
+body.mode-widgets .city-highlight {
+  color: #ffffff;
+}
+
+body.mode-widgets .provider-pill {
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+body.mode-widgets .region-subtitle {
+  color: #cbd5e1;
+}
+
+body.mode-widgets .mode-tab {
+  color: #bae6fd;
+}
+
+body.mode-widgets .mode-tab.active {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+/* Главная карточка текущей погоды в режиме виджетов */
+.modern-widgets-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modern-hero-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 24px 28px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: center;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.35);
+}
+
+.modern-date-caption {
+  font-size: 13px;
+  color: #bae6fd;
+  margin-bottom: 10px;
+}
+
+.modern-hero-temp-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.modern-hero-icon {
+  width: 104px;
+  height: 104px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28));
+}
+
+.modern-temp-big {
+  font-size: 58px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
+.modern-desc-text {
+  font-size: 17px;
+  font-weight: 600;
+  color: #e0f2fe;
+  margin-top: 6px;
+}
+
+.modern-feels-text {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-top: 4px;
+}
+
+.modern-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.modern-metric-box {
+  background: rgba(15, 23, 42, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modern-metric-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.modern-metric-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 3px;
+}
+
+.modern-metric-sub {
+  font-size: 11px;
+  color: #cbd5e1;
+  margin-top: 2px;
+}
+
+/* Сетка карточек-виджетов по дням */
+.modern-forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.modern-day-card {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.modern-day-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.modern-day-card.active {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  box-shadow: 0 12px 28px -8px rgba(56, 189, 248, 0.45);
+}
+
+.mod-day-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: capitalize;
+}
+
+.mod-day-date {
+  font-size: 12px;
+  color: #bae6fd;
+  margin-top: 2px;
+}
+
+.mod-day-icon {
+  width: 68px;
+  height: 68px;
+  margin: 8px 0 4px;
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.25));
+}
+
+.mod-day-desc {
+  font-size: 12px;
+  color: #e0f2fe;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.mod-day-temps {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mod-t-max {
+  font-size: 21px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.mod-t-min {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.mod-temp-bar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.mod-temp-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #fbbf24, #f97316);
+}
+
+.mod-day-pills {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mod-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.42);
+  padding: 6px 9px;
+  border-radius: 10px;
+  font-size: 11.5px;
+}
+
+.mod-pill-lbl {
+  color: #cbd5e1;
+}
+
+.mod-pill-val-precip {
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+.mod-pill-val-wind {
+  font-weight: 700;
+  color: #2dd4bf;
+}
+
+/* Почасовой блок в режиме виджетов */
+.modern-hourly-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 20px 24px;
+}
+
+.modern-hourly-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.modern-hourly-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.modern-summary-line {
+  font-size: 12.5px;
+  color: #bae6fd;
+}
+
+.modern-hourly-track {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 10px;
+}
+
+.mod-hour-box {
+  background: rgba(15, 23, 42, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mod-hour-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.mod-hour-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.mod-hour-temp {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.mod-hour-precip {
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+.mod-hour-wind {
+  font-size: 11px;
+  color: #5eead4;
+}
+
+body.mode-widgets .sinoptik-footer {
+  border-top-color: rgba(255, 255, 255, 0.16);
+  color: #cbd5e1;
+}
+
+body.mode-widgets .crumb-prefix,
+body.mode-widgets .footer-bottom {
+  color: #cbd5e1;
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+body.mode-widgets .crumb-item {
+  color: #7dd3fc;
+}
+
+body.mode-widgets .crumb-current {
+  color: #ffffff;
+}
+
+body.mode-widgets .sinoptik-modal {
+  color: #222;
+}
+
+@media (max-width: 900px) {
+  .modern-hero-card {
+    grid-template-columns: 1fr;
+  }
+  .modern-forecast-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .modern-hourly-track {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .modern-hourly-track {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

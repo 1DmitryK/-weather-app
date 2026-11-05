@@ -92,7 +92,19 @@ const I18N = {
     locale: 'ru-RU',
     pageTitle: 'Погода — Прогноз на 10 дней',
     brandTitle: 'ПОГОДА',
-    brandTagline: 'Метеопрогноз 10 дней',
+    brandTaglineClassic: 'ECMWF • Foreca',
+    brandTaglineWidgets: 'Gismeteo • GFS',
+    modeClassicBtn: 'Таблица',
+    modeWidgetsBtn: 'Виджеты (Gismeteo)',
+    modWind: '💨 Ветер',
+    modPrecip: '💧 Осадки',
+    modPressure: '🧭 Давление',
+    modSun: '☀ Солнце',
+    feelsLikePrefix: 'Ощущается как',
+    humidityPrefix: 'Влажность:',
+    hourlyTitlePrefix: 'Почасовой прогноз:',
+    todayWord: 'Сегодня',
+    tomorrowWord: 'Завтра',
     searchPlaceholder: 'Название населенного пункта, страны или региона...',
     settingsBtn: 'Настройки',
     settingsTitle: 'Настройки отображения',
@@ -166,7 +178,19 @@ const I18N = {
     locale: 'uk-UA',
     pageTitle: 'Погода — Прогноз на 10 днів',
     brandTitle: 'ПОГОДА',
-    brandTagline: 'Метеопрогноз 10 днів',
+    brandTaglineClassic: 'ECMWF • Foreca',
+    brandTaglineWidgets: 'Gismeteo • GFS',
+    modeClassicBtn: 'Таблиця',
+    modeWidgetsBtn: 'Віджети (Gismeteo)',
+    modWind: '💨 Вітер',
+    modPrecip: '💧 Опади',
+    modPressure: '🧭 Тиск',
+    modSun: '☀ Сонце',
+    feelsLikePrefix: 'Відчувається як',
+    humidityPrefix: 'Вологість:',
+    hourlyTitlePrefix: 'Погодинний прогноз:',
+    todayWord: 'Сьогодні',
+    tomorrowWord: 'Завтра',
     searchPlaceholder: 'Назва населеного пункту, країни або регіону...',
     settingsBtn: 'Налаштування',
     settingsTitle: 'Налаштування відображення',
@@ -240,7 +264,19 @@ const I18N = {
     locale: 'en-US',
     pageTitle: 'Weather — 10-Day Forecast',
     brandTitle: 'WEATHER',
-    brandTagline: '10-Day Forecast',
+    brandTaglineClassic: 'ECMWF • Foreca',
+    brandTaglineWidgets: 'Gismeteo • GFS',
+    modeClassicBtn: 'Table View',
+    modeWidgetsBtn: 'Widgets (Gismeteo)',
+    modWind: '💨 Wind',
+    modPrecip: '💧 Precipitation',
+    modPressure: '🧭 Pressure',
+    modSun: '☀ Sun',
+    feelsLikePrefix: 'Feels like',
+    humidityPrefix: 'Humidity:',
+    hourlyTitlePrefix: 'Hourly forecast:',
+    todayWord: 'Today',
+    tomorrowWord: 'Tomorrow',
     searchPlaceholder: 'City name, country or region...',
     settingsBtn: 'Settings',
     settingsTitle: 'Display Settings',
@@ -316,6 +352,11 @@ const I18N = {
 let currentLang = localStorage.getItem('weather_lang') || 'ru';
 if (!I18N[currentLang]) currentLang = 'ru';
 
+let currentViewMode = localStorage.getItem('weather_view_mode') || 'classic'; // 'classic' | 'widgets'
+if (!['classic', 'widgets'].includes(currentViewMode)) currentViewMode = 'classic';
+
+let lastEcmwfData = null;
+let lastGfsData = null;
 let lastWeatherData = null;
 let currentLocationMeta = {
   city: '',
@@ -469,7 +510,28 @@ function applyStaticTranslations() {
   document.title = dict.pageTitle;
 
   document.getElementById('brandTitle').textContent = dict.brandTitle;
-  document.getElementById('brandTagline').textContent = dict.brandTagline;
+  document.getElementById('brandTagline').textContent =
+    currentViewMode === 'widgets' ? dict.brandTaglineWidgets : dict.brandTaglineClassic;
+
+  const lblModeClassic = document.getElementById('lblModeClassic');
+  const lblModeWidgets = document.getElementById('lblModeWidgets');
+  if (lblModeClassic) lblModeClassic.textContent = dict.modeClassicBtn;
+  if (lblModeWidgets) lblModeWidgets.textContent = dict.modeWidgetsBtn;
+
+  const providerBadge = document.getElementById('providerBadge');
+  if (providerBadge) {
+    providerBadge.textContent = currentViewMode === 'widgets' ? 'Gismeteo / GFS' : 'ECMWF / Foreca';
+  }
+
+  const lblModWind = document.getElementById('lblModWind');
+  const lblModPrecip = document.getElementById('lblModPrecip');
+  const lblModPressure = document.getElementById('lblModPressure');
+  const lblModSun = document.getElementById('lblModSun');
+  if (lblModWind) lblModWind.textContent = dict.modWind;
+  if (lblModPrecip) lblModPrecip.textContent = dict.modPrecip;
+  if (lblModPressure) lblModPressure.textContent = dict.modPressure;
+  if (lblModSun) lblModSun.textContent = dict.modSun;
+
   cityInput.placeholder = dict.searchPlaceholder;
   document.getElementById('settingsBtn').textContent = dict.settingsBtn;
   document.getElementById('settingsModalTitle').textContent = dict.settingsTitle;
@@ -581,7 +643,8 @@ async function reverseGeocode(lat, lon) {
 }
 
 // Запрос к европейской метеорологической модели ECMWF (основа прогнозов Foreca / Sinoptik.ua)
-async function fetchFromEcmwfModel(lat, lon) {
+// или модели GFS (основа прогнозов Gismeteo)
+async function fetchFromModelEndpoint(lat, lon, modelEndpoint = 'ecmwf') {
   const params = new URLSearchParams({
     latitude: Number(lat).toFixed(4),
     longitude: Number(lon).toFixed(4),
@@ -605,11 +668,11 @@ async function fetchFromEcmwfModel(lat, lon) {
     forecast_days: '10'
   });
 
-  const res = await fetch(`https://api.open-meteo.com/v1/ecmwf?${params.toString()}`);
-  if (!res.ok) throw new Error('ECMWF API error');
+  const res = await fetch(`https://api.open-meteo.com/v1/${modelEndpoint}?${params.toString()}`);
+  if (!res.ok) throw new Error(`${modelEndpoint} API error`);
   const json = await res.json();
   if (json.error || !json.hourly || !json.daily) {
-    throw new Error('ECMWF invalid payload');
+    throw new Error(`${modelEndpoint} invalid payload`);
   }
 
   const nowHour = new Date().getHours();
@@ -626,7 +689,6 @@ async function fetchFromEcmwfModel(lat, lon) {
     wind_direction_10m: json.hourly.wind_direction_10m[curIdx] ?? 180
   };
 
-  // Группировка почасовых данных ECMWF по датам
   const dayMap = new Map();
   json.hourly.time.forEach((iso, idx) => {
     const dateStr = iso.slice(0, 10);
@@ -644,6 +706,7 @@ async function fetchFromEcmwfModel(lat, lon) {
       humidity: Math.round(json.hourly.relative_humidity_2m[idx] ?? 72),
       windSpeed: json.hourly.wind_speed_10m[idx] ?? 2.5,
       windDeg: json.hourly.wind_direction_10m[idx] ?? 180,
+      precipAmount: pMm,
       precipProb: pProb,
       wmo
     });
@@ -658,6 +721,9 @@ async function fetchFromEcmwfModel(lat, lon) {
     const tMin = json.daily.temperature_2m_min[dIdx];
     const dWmo = json.daily.weather_code[dIdx] ?? 2;
     const sun = computeSunTimes(lat, lon, dateStr);
+    const precipSum = pts.reduce((acc, p) => acc + (p.precipAmount || 0), 0);
+    const maxWind = pts.length ? Math.max(...pts.map((p) => p.windSpeed)) : 3.0;
+    const maxProb = pts.length ? Math.max(...pts.map((p) => p.precipProb)) : 5;
 
     const slots = targetHours.map((th) => {
       const found = pts.find((p) => p.hour === th) || pts[0] || {
@@ -689,6 +755,9 @@ async function fetchFromEcmwfModel(lat, lon) {
       tMin,
       tMax,
       wmo: dWmo,
+      precipSum: Number(precipSum.toFixed(1)),
+      precipProbMax: maxProb,
+      windMax: Number(maxWind.toFixed(1)),
       sunrise: sun.sunrise,
       sunset: sun.sunset,
       durH: sun.durH,
@@ -845,14 +914,28 @@ async function fetchWeatherByCoords(lat, lon, cityLabel, regionLabel = '', count
   hideError();
 
   try {
-    let data;
-    try {
-      // Сначала запрашиваем европейскую модель ECMWF (совпадающую с Foreca / Sinoptik.ua)
-      data = await fetchFromEcmwfModel(numLat, numLon);
-    } catch {
-      // Автоматический резерв на MET Norway (которая также базируется на ECMWF)
-      data = await fetchFromMetNorway(numLat, numLon);
+    // Загружаем обе модели параллельно:
+    // 1. ECMWF (для табличного режима Sinoptik / Foreca)
+    // 2. GFS (для режима с голубым фоном и виджетами Gismeteo)
+    const [ecmwfResult, gfsResult] = await Promise.allSettled([
+      fetchFromModelEndpoint(numLat, numLon, 'ecmwf'),
+      fetchFromModelEndpoint(numLat, numLon, 'gfs')
+    ]);
+
+    let fallbackData = null;
+    if (ecmwfResult.status !== 'fulfilled' && gfsResult.status !== 'fulfilled') {
+      fallbackData = await fetchFromMetNorway(numLat, numLon);
     }
+
+    lastEcmwfData = ecmwfResult.status === 'fulfilled'
+      ? ecmwfResult.value
+      : (gfsResult.status === 'fulfilled' ? gfsResult.value : fallbackData);
+
+    lastGfsData = gfsResult.status === 'fulfilled'
+      ? gfsResult.value
+      : (ecmwfResult.status === 'fulfilled' ? ecmwfResult.value : fallbackData);
+
+    lastWeatherData = currentViewMode === 'widgets' ? lastGfsData : lastEcmwfData;
 
     currentLocationMeta = {
       city: cityLabel || t().yourLocation,
@@ -862,7 +945,6 @@ async function fetchWeatherByCoords(lat, lon, cityLabel, regionLabel = '', count
       lon: numLon
     };
 
-    lastWeatherData = data;
     selectedDayIndex = 0;
 
     hideError();
@@ -877,9 +959,27 @@ async function fetchWeatherByCoords(lat, lon, cityLabel, regionLabel = '', count
 }
 
 function renderSinoptikView() {
+  lastWeatherData = currentViewMode === 'widgets' ? (lastGfsData || lastEcmwfData) : (lastEcmwfData || lastGfsData);
   if (!lastWeatherData) return;
+
   const dict = t();
   const { city, region, country } = currentLocationMeta;
+
+  // Переключение класса темы на body и активных кнопок режима
+  document.body.classList.toggle('mode-widgets', currentViewMode === 'widgets');
+  document.body.classList.toggle('mode-classic', currentViewMode !== 'widgets');
+
+  const btnClassic = document.getElementById('btnModeClassic');
+  const btnWidgets = document.getElementById('btnModeWidgets');
+  if (btnClassic) btnClassic.classList.toggle('active', currentViewMode === 'classic');
+  if (btnWidgets) btnWidgets.classList.toggle('active', currentViewMode === 'widgets');
+
+  const providerBadge = document.getElementById('providerBadge');
+  if (providerBadge) {
+    providerBadge.textContent = currentViewMode === 'widgets' ? 'Gismeteo / GFS' : 'ECMWF / Foreca';
+  }
+  document.getElementById('brandTagline').textContent =
+    currentViewMode === 'widgets' ? dict.brandTaglineWidgets : dict.brandTaglineClassic;
 
   cityTitleLoc.textContent = `${dict.inCityPrefix} ${city}`;
   const subParts = [region, country].filter(Boolean);
@@ -889,10 +989,141 @@ function renderSinoptikView() {
   crumbRegion.textContent = region || dict.regionCrumb;
   crumbCity.textContent = city;
 
-  renderDaysTabs();
-  renderSelectedDayDetail(selectedDayIndex);
+  const modernView = document.getElementById('modernWidgetsView');
 
-  weatherMain.classList.remove('hidden');
+  if (currentViewMode === 'widgets') {
+    weatherMain.classList.add('hidden');
+    if (modernView) modernView.classList.remove('hidden');
+    renderModernWidgetsView();
+  } else {
+    if (modernView) modernView.classList.add('hidden');
+    weatherMain.classList.remove('hidden');
+    renderDaysTabs();
+    renderSelectedDayDetail(selectedDayIndex);
+  }
+}
+
+// Отрисовка Режима 2: Голубой фон и красивые виджеты на каждый день (Gismeteo / GFS)
+function renderModernWidgetsView() {
+  const dict = t();
+  const cur = lastWeatherData.current;
+  const days = lastWeatherData.days;
+  const count = Math.min(displayDaysCount, days.length);
+  const selectedDay = days[selectedDayIndex] || days[0];
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString(dict.locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const curMeta = getWeatherMeta(cur.weather_code);
+  document.getElementById('modernDateCaption').textContent = `${dateStr} • Gismeteo (GFS)`;
+  document.getElementById('modernHeroIcon').innerHTML = curMeta.icon;
+  document.getElementById('modernCurrentTemp').textContent = `${fmtTemp(cur.temperature_2m)}${tempUnit}`;
+  document.getElementById('modernCurrentDesc').textContent = curMeta.label;
+  document.getElementById('modernFeelsLike').textContent =
+    `${dict.feelsLikePrefix} ${fmtTemp(cur.apparent_temperature)}${tempUnit}`;
+
+  const wUnit = windUnit === 'kmh' ? dict.unitKmh : dict.unitMs;
+  const wInfo = getWindInfo(cur.wind_direction_10m);
+  document.getElementById('modernWindVal').textContent = `${fmtWind(cur.wind_speed_10m)} ${wUnit}`;
+  document.getElementById('modernWindDir').textContent = `${wInfo.arrow} ${wInfo.full}`;
+
+  document.getElementById('modernPrecipVal').textContent = `${(cur.precipitation ?? 0).toFixed(1)} мм`;
+  document.getElementById('modernHumidityVal').textContent = `${dict.humidityPrefix} ${cur.relative_humidity_2m}%`;
+
+  const curPressMm = Math.round((cur.surface_pressure ?? 1015) * 0.750062);
+  document.getElementById('modernPressureVal').textContent = `${curPressMm} мм`;
+
+  document.getElementById('modernSunVal').textContent = `${selectedDay.sunrise} / ${selectedDay.sunset}`;
+  document.getElementById('modernDaylightSub').textContent =
+    `${selectedDay.durH} ${dict.hoursShort} ${String(selectedDay.durM).padStart(2, '0')} ${dict.minsShort}`;
+
+  // Сетка карточек на 10 (или 7) дней
+  const grid = document.getElementById('modernForecastGrid');
+  grid.innerHTML = '';
+
+  const sliceDays = days.slice(0, count);
+  const allMin = Math.min(...sliceDays.map((d) => d.tMin));
+  const allMax = Math.max(...sliceDays.map((d) => d.tMax));
+  const span = Math.max(1, allMax - allMin);
+
+  sliceDays.forEach((day, idx) => {
+    const dObj = new Date(day.dateStr + 'T12:00:00');
+    let dayName = dObj.toLocaleDateString(dict.locale, { weekday: 'short' });
+    if (idx === 0) dayName = dict.todayWord;
+    if (idx === 1) dayName = dict.tomorrowWord;
+
+    const dateShort = dObj.toLocaleDateString(dict.locale, { day: 'numeric', month: 'short' });
+    const meta = getWeatherMeta(day.wmo);
+
+    const leftPct = ((day.tMin - allMin) / span) * 65;
+    const widthPct = Math.max(24, ((day.tMax - day.tMin) / span) * 100);
+
+    const pSum = (day.precipSum ?? 0).toFixed(1);
+    const pProb = day.precipProbMax ?? Math.max(...day.slots.map((s) => s.precipProb));
+    const wMax = day.windMax ?? Math.max(...day.slots.map((s) => s.windSpeed));
+
+    const card = document.createElement('div');
+    card.className = `modern-day-card ${idx === selectedDayIndex ? 'active' : ''}`;
+    card.innerHTML = `
+      <div class="mod-day-name">${dayName}</div>
+      <div class="mod-day-date">${dateShort}</div>
+      <div class="mod-day-icon">${meta.icon}</div>
+      <div class="mod-day-desc">${meta.label}</div>
+      <div class="mod-day-temps">
+        <span class="mod-t-max">${fmtTemp(day.tMax)}</span>
+        <span class="mod-t-min">${fmtTemp(day.tMin)}</span>
+      </div>
+      <div class="mod-temp-bar">
+        <div class="mod-temp-bar-fill" style="margin-left:${leftPct.toFixed(0)}%; width:${Math.min(100 - leftPct, widthPct).toFixed(0)}%"></div>
+      </div>
+      <div class="mod-day-pills">
+        <div class="mod-pill">
+          <span class="mod-pill-lbl">💧</span>
+          <span class="mod-pill-val-precip">${pSum} мм (${pProb}%)</span>
+        </div>
+        <div class="mod-pill">
+          <span class="mod-pill-lbl">💨</span>
+          <span class="mod-pill-val-wind">${fmtWind(wMax)} ${wUnit}</span>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => {
+      selectedDayIndex = idx;
+      renderModernWidgetsView();
+    });
+
+    grid.appendChild(card);
+  });
+
+  // Почасовая дорожка внизу для выбранного дня
+  const selObj = new Date(selectedDay.dateStr + 'T12:00:00');
+  const fullDayTitle = selObj.toLocaleDateString(dict.locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('modernHourlyTitle').textContent = `${dict.hourlyTitlePrefix} ${fullDayTitle}`;
+  document.getElementById('modernSummaryLine').textContent = generateNaturalSummary(selectedDay, currentLocationMeta.city);
+
+  const track = document.getElementById('modernHourlyTrack');
+  track.innerHTML = '';
+
+  selectedDay.slots.forEach((s) => {
+    const m = getWeatherMeta(s.wmo);
+    const box = document.createElement('div');
+    box.className = 'mod-hour-box';
+    box.innerHTML = `
+      <span class="mod-hour-time">${s.hourLabel}</span>
+      <div class="mod-hour-icon">${m.icon}</div>
+      <span class="mod-hour-temp">${fmtTemp(s.temp)}</span>
+      <span class="mod-hour-precip">💧 ${s.precipProb}%</span>
+      <span class="mod-hour-wind">💨 ${fmtWind(s.windSpeed)} ${wUnit}</span>
+    `;
+    track.appendChild(box);
+  });
 }
 
 function renderDaysTabs() {
@@ -1411,6 +1642,30 @@ document.addEventListener('click', (e) => {
     suggestionsList.classList.add('hidden');
   }
 });
+
+// Переключение между двумя режимами отображения:
+// 1. Классический табличный (Sinoptik / модель ECMWF-Foreca)
+// 2. Голубой фон и виджеты на каждый день (Gismeteo / модель GFS)
+const btnModeClassic = document.getElementById('btnModeClassic');
+const btnModeWidgets = document.getElementById('btnModeWidgets');
+
+if (btnModeClassic) {
+  btnModeClassic.addEventListener('click', () => {
+    if (currentViewMode === 'classic') return;
+    currentViewMode = 'classic';
+    localStorage.setItem('weather_view_mode', 'classic');
+    renderSinoptikView();
+  });
+}
+
+if (btnModeWidgets) {
+  btnModeWidgets.addEventListener('click', () => {
+    if (currentViewMode === 'widgets') return;
+    currentViewMode = 'widgets';
+    localStorage.setItem('weather_view_mode', 'widgets');
+    renderSinoptikView();
+  });
+}
 
 // Переключение языков UA / EN / RU
 document.querySelectorAll('.lang-btn').forEach((btn) => {

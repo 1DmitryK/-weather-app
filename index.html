@@ -6,15 +6,23 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Погода" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#0f172a" />
   <link rel="manifest" href="manifest.json" />
   <title>Погода — Прогноз на 10 дней</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="mode-classic">
+  <!-- Фоновые свечения для современного режима (Виджеты / Gismeteo) -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
   <div class="sinoptik-page">
 
-    <!-- Верхняя шапка: Оригинальный логотип + Поиск + Переключатель языков (UA / EN / RU) + Настройки -->
+    <!-- Верхняя шапка: Логотип + Поиск + Переключатель Режима + Переключатель Языка + Настройки -->
     <header class="sinoptik-header">
       <a href="#" id="logoHome" class="brand-logo-link" aria-label="Погода">
         <div class="brand-custom-icon">
@@ -42,7 +50,7 @@
         </div>
         <div class="brand-text-wrap">
           <span id="brandTitle" class="brand-title">ПОГОДА</span>
-          <span id="brandTagline" class="brand-tagline">Метеопрогноз 10 дней</span>
+          <span id="brandTagline" class="brand-tagline">ECMWF • Foreca</span>
         </div>
       </a>
 
@@ -56,7 +64,7 @@
             aria-label="Поиск населенного пункта"
           />
           <button type="button" id="geoBtn" class="sinoptik-geo-btn" title="GPS">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#008aff" stroke-width="2">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="4"></circle>
               <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
             </svg>
@@ -67,12 +75,23 @@
       </div>
 
       <div class="header-actions">
+        <!-- Кнопка переключения между двумя режимами: Таблица (ECMWF) / Виджеты (Gismeteo) -->
+        <div class="theme-mode-switcher" role="group" aria-label="View Mode">
+          <button type="button" id="btnModeClassic" class="view-mode-btn active" title="Классический табличный вид (модель ECMWF / Foreca)">
+            <span id="lblModeClassic">Таблица</span>
+          </button>
+          <button type="button" id="btnModeWidgets" class="view-mode-btn" title="Голубой фон и виджеты на каждый день (модель Gismeteo / GFS)">
+            <span id="lblModeWidgets">Виджеты (Gismeteo)</span>
+          </button>
+        </div>
+
         <!-- Переключатель языка UA / EN / RU -->
         <div class="lang-switcher" role="group" aria-label="Language">
           <button type="button" class="lang-btn" data-lang="uk">UA</button>
           <button type="button" class="lang-btn" data-lang="en">EN</button>
           <button type="button" class="lang-btn active" data-lang="ru">RU</button>
         </div>
+
         <button type="button" id="settingsBtn" class="sinoptik-link-btn">Настройки</button>
       </div>
     </header>
@@ -111,6 +130,7 @@
       <div class="location-titles">
         <h1 class="main-city-heading">
           <span id="weatherWordPrefix">Погода</span> <span id="cityTitleLoc" class="city-highlight">...</span>
+          <span id="providerBadge" class="provider-pill">ECMWF</span>
         </h1>
         <p id="regionSubtitle" class="region-subtitle">...</p>
       </div>
@@ -127,16 +147,15 @@
       <span id="loaderText">Загружаем метеопрогноз...</span>
     </div>
 
-    <!-- Основной блок прогноза (Вкладки дней + Детальная панель выбранного дня) -->
+    <!-- ========================================================================= -->
+    <!-- РЕЖИМ 1: КЛАССИЧЕСКИЙ ТАБЛИЧНЫЙ ВИД (SINOPTIK / ECMWF)                    -->
+    <!-- ========================================================================= -->
     <main id="weatherMain" class="sinoptik-main hidden">
       <!-- Лента вкладок на 10 (или 7) дней -->
-      <div id="daysTabsRow" class="days-tabs-row" role="menubar">
-        <!-- Вкладки генерируются в app.js -->
-      </div>
+      <div id="daysTabsRow" class="days-tabs-row" role="menubar"></div>
 
-      <!-- Белая детальная карточка выбранного дня (под вкладками) -->
+      <!-- Белая детальная карточка выбранного дня -->
       <div class="day-detail-box">
-        <!-- Левая колонка: Текущее время, Иконка + Градусник + Температура, Восход/Закат, Поделиться -->
         <div class="detail-left-col">
           <div id="localTimeLabel" class="detail-time-caption">—</div>
 
@@ -174,10 +193,8 @@
           </div>
         </div>
 
-        <!-- Правая колонка: Почасовая таблица (ночь / утро / день / вечер) + Текстовое описание -->
         <div class="detail-right-col">
           <div class="hourly-table-wrapper">
-            <!-- Подписи строк слева от таблицы -->
             <div class="table-row-labels">
               <p class="row-label row-temp"><span id="lblRowTemp">Температура</span>, <span class="unit-temp-label">°C</span></p>
               <p class="row-label row-feels"><span id="lblRowFeels">чувствуется как</span></p>
@@ -187,10 +204,9 @@
               <p class="row-label row-precip"><span id="lblRowPrecip">Вероятность осадков, %</span></p>
             </div>
 
-            <!-- Сама таблица на 8 часовых столбцов (0:00 .. 21:00) -->
             <div class="table-scroll-container">
               <table class="sinoptik-hourly-table" cellspacing="0" cellpadding="0">
-                <colgroup id="hourlyColgroup">
+                <colgroup>
                   <col /><col /><col /><col /><col /><col /><col /><col />
                 </colgroup>
                 <thead>
@@ -205,14 +221,11 @@
                     <td>12:00</td><td>15:00</td><td>18:00</td><td>21:00</td>
                   </tr>
                 </thead>
-                <tbody id="hourlyTableBody">
-                  <!-- Строки иконок, температуры, ощущается, давления, влажности, ветра, осадков -->
-                </tbody>
+                <tbody id="hourlyTableBody"></tbody>
               </table>
             </div>
           </div>
 
-          <!-- Естественное текстовое описание погоды на выбранный день -->
           <div class="day-text-summaries">
             <div class="summary-block">
               <div class="summary-icon-badge info-badge">i</div>
@@ -227,6 +240,61 @@
       </div>
     </main>
 
+    <!-- ========================================================================= -->
+    <!-- РЕЖИМ 2: ГОЛУБОЙ ФОН С ВИДЖЕТАМИ НА КАЖДЫЙ ДЕНЬ (GISMETEO / GFS)           -->
+    <!-- ========================================================================= -->
+    <section id="modernWidgetsView" class="modern-widgets-view hidden">
+      <!-- Главная карточка текущей погоды -->
+      <div class="modern-hero-card">
+        <div class="modern-hero-left">
+          <p id="modernDateCaption" class="modern-date-caption">—</p>
+          <div class="modern-hero-temp-row">
+            <div id="modernHeroIcon" class="modern-hero-icon"></div>
+            <div>
+              <div id="modernCurrentTemp" class="modern-temp-big">+10°</div>
+              <div id="modernCurrentDesc" class="modern-desc-text">Облачно с прояснениями</div>
+              <div id="modernFeelsLike" class="modern-feels-text">Ощущается как +8°C</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modern-metrics-grid">
+          <div class="modern-metric-box">
+            <span id="lblModWind" class="modern-metric-label">💨 Ветер</span>
+            <span id="modernWindVal" class="modern-metric-val">3.5 м/с</span>
+            <span id="modernWindDir" class="modern-metric-sub">Юго-Западный</span>
+          </div>
+          <div class="modern-metric-box">
+            <span id="lblModPrecip" class="modern-metric-label">💧 Осадки</span>
+            <span id="modernPrecipVal" class="modern-metric-val">0.0 мм</span>
+            <span id="modernHumidityVal" class="modern-metric-sub">Влажность: 75%</span>
+          </div>
+          <div class="modern-metric-box">
+            <span id="lblModPressure" class="modern-metric-label">🧭 Давление</span>
+            <span id="modernPressureVal" class="modern-metric-val">762 мм</span>
+            <span class="modern-metric-sub">рт. ст. (mmHg)</span>
+          </div>
+          <div class="modern-metric-box">
+            <span id="lblModSun" class="modern-metric-label">☀ Солнце</span>
+            <span id="modernSunVal" class="modern-metric-val">06:55 / 16:30</span>
+            <span id="modernDaylightSub" class="modern-metric-sub">9 ч 35 мин</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Сетка красивых виджетов по дням (10 или 7 дней) -->
+      <div id="modernForecastGrid" class="modern-forecast-grid"></div>
+
+      <!-- Почасовые виджеты выбранного дня -->
+      <div class="modern-hourly-card">
+        <div class="modern-hourly-header">
+          <h3 id="modernHourlyTitle" class="modern-hourly-title">Почасовой прогноз (Gismeteo / GFS)</h3>
+          <span id="modernSummaryLine" class="modern-summary-line">—</span>
+        </div>
+        <div id="modernHourlyTrack" class="modern-hourly-track"></div>
+      </div>
+    </section>
+
     <!-- Хлебные крошки и подвал -->
     <footer class="sinoptik-footer">
       <nav aria-label="Breadcrumb" class="breadcrumbs-bar">
@@ -239,7 +307,7 @@
       </nav>
 
       <div class="footer-bottom">
-        <p id="footerCopy" class="footer-copy">Погода во всех уголках мира • Прогноз погоды на 10 дней</p>
+        <p id="footerCopy" class="footer-copy">Погода во всех уголках мира • Точный прогноз на 10 дней</p>
         <p id="footerSub" class="footer-sub">Автоматическое определение геолокации (GPS) • Без рекламы</p>
       </div>
     </footer>
