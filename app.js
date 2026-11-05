@@ -494,10 +494,12 @@ function applyStaticTranslations() {
   document.getElementById('lblNight').textContent = dict.night;
   document.getElementById('lblMorning').textContent = dict.morning;
   document.getElementById('lblDay').textContent = dict.day;
-  document.getElementById('lblEvening').textContent = dict.evening;
+  const lblEvening = document.getElementById('lblEvening');
+  if (lblEvening) lblEvening.textContent = dict.evening;
 
-  toggleMapBtn.textContent = dict.mapBtn;
-  document.getElementById('worldSectionTitle').textContent = dict.worldTitle;
+  if (toggleMapBtn) toggleMapBtn.textContent = dict.mapBtn;
+  const worldSectionTitle = document.getElementById('worldSectionTitle');
+  if (worldSectionTitle) worldSectionTitle.textContent = dict.worldTitle;
   document.getElementById('crumbPrefix').textContent = dict.weatherPrefix;
   document.getElementById('footerCopy').textContent = dict.footerCopy;
   document.getElementById('footerSub').textContent = dict.footerSub;
@@ -505,8 +507,6 @@ function applyStaticTranslations() {
   document.querySelectorAll('.lang-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.lang === currentLang);
   });
-
-  initWorldCitiesList();
 }
 
 // Поиск геокоординат с учётом выбранного языка
@@ -867,7 +867,6 @@ async function fetchWeatherByCoords(lat, lon, cityLabel, regionLabel = '', count
 
     hideError();
     renderSinoptikView();
-    loadNearbyRegionalCities(numLat, numLon, regionLabel, countryLabel);
   } catch (err) {
     if (!lastWeatherData) {
       showError(t().networkError);
@@ -1429,7 +1428,6 @@ document.querySelectorAll('.lang-btn').forEach((btn) => {
       if (place.region) currentLocationMeta.region = place.region;
       if (place.country) currentLocationMeta.country = place.country;
       renderSinoptikView();
-      loadNearbyRegionalCities(currentLocationMeta.lat, currentLocationMeta.lon, currentLocationMeta.region, currentLocationMeta.country);
     }
   });
 });
@@ -1449,9 +1447,11 @@ tab10Days.addEventListener('click', () => {
   renderSinoptikView();
 });
 
-toggleMapBtn.addEventListener('click', () => {
-  mapContainer.classList.toggle('hidden');
-});
+if (toggleMapBtn && mapContainer) {
+  toggleMapBtn.addEventListener('click', () => {
+    mapContainer.classList.toggle('hidden');
+  });
+}
 
 shareWeatherBtn.addEventListener('click', async () => {
   if (!lastWeatherData) return;
